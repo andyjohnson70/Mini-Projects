@@ -16,6 +16,10 @@
   }
 }
 
+select {
+  background-color: #212121;
+}
+
 body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(

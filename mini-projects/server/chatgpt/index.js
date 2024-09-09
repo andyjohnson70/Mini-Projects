@@ -13,19 +13,28 @@ const openai = new OpenAI({
     project: "",
     apiKey: process.env.OPEN_AI_API_KEY
 });
+
   
 
 app.post('/', async (req, res) => {
-const { message } = req.body;
+const { message, currentModel } = req.body;
 const response = await openai.chat.completions.create({
     messages: [{ role: "system", content: `${message}` }],
-    model: "gpt-4o-mini-2024-07-18",
+    model: `${currentModel}`,
     });
 
     res.json({
     message: response.choices[0].message.content
     })
 })
+
+app.get('/models', async (req, res) =>{
+  const list = await openai.models.list();
+  console.log(list);
+  res.json({
+    models: list
+  });
+});
 
   app.listen(port, () => {
     console.log(`Mini Projects listening at http://localhost:${port}`);

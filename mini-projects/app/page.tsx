@@ -1,12 +1,21 @@
 'use client';
-import { FormEvent, useState } from "react";
+import { getMiddlewareMatchers } from "next/dist/build/analysis/get-page-static-info";
+import { Models } from "openai/resources/models.mjs";
+import { FormEvent, useState, useEffect } from "react";
 
 export default function Home() {
+  // useEffect(() => {
+  //   getModels();
+  // }, []);
+
   const [input, setInput] = useState<string>("");
+  const [models, setModels] = useState<Model[]>([]);
+  const [currentModel, setCurrentModel] = useState<string>("gpt-4o-mini-2024-07-18");
   const [chatLog, setChatLog] = useState<ChatMessage[]>([{
     user: "chatgpt",
     message: "How can I help you today?"
   }]);
+  
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -22,7 +31,8 @@ export default function Home() {
         "Content-type": "application/json"
       },
       body: JSON.stringify({
-        message: messages
+        message: messages,
+        currentModel: currentModel
       })
     });
     const data = await repsonse.json();
@@ -33,12 +43,32 @@ export default function Home() {
     await setChatLog([]);
   }
 
+  function getModels() {
+    const response = fetch("http://localhost:3080/models")
+    .then(res => res.json())
+    .then(data => {
+      console.log(data);
+      setModels(data.models.data as Model[])
+    });
+    console.log(models);
+  }
+
   return (
     <main className="flex min-h-screen ">
       <aside className="sidemenu">
         <div className="sidemenu-button" onClick={clearChatLog}>
           <span className="sidemenu-button-span">+</span>
           New Chat
+        </div>
+
+        <div className="models">
+          {/* <select onChange={(e) => {setCurrentModel(e.target.value)}}>
+            {(models.length > 0)
+            ? models.map((model, index) => {
+              return <option key={index} value={model.id}>{model.id}</option>
+            })
+            : null}
+          </select> */}
         </div>
       </aside>
       <section className="chatbox">
@@ -81,4 +111,11 @@ const ChatMessageRow = (chatMessage : ChatMessage) => {
 type ChatMessage = {
   user: string;
   message: string;
+}
+
+type Model = {
+  id: string;
+  object: string;
+  created: number;
+  owned_by: string;
 }
